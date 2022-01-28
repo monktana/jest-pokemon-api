@@ -1,10 +1,15 @@
 import got from 'got';
 import { API_URL } from '../settings';
 
-describe('/pokemon', () => {
+
+const httpClient = got.extend({
+  prefixUrl: API_URL
+});
+
+describe('pokemon', () => {
 
   it('recieves multiple pokemon', async () => {
-    const pokemon = await got.get(`${API_URL}/pokemon?limit=10&offset=0`).json();
+    const pokemon = await httpClient.get(`pokemon?limit=10&offset=0`).json();
 
     expect(pokemon.total).toBe(898);
     expect(pokemon.results.length).toBe(10);
@@ -16,7 +21,7 @@ describe('/pokemon', () => {
   describe('limit', () => {
 
     it('recieves the expected amout of elements based on limit parameter', async () => {
-      const pokemon = await got.get(`${API_URL}/pokemon?limit=50&offset=0`).json();
+      const pokemon = await httpClient.get(`pokemon?limit=50&offset=0`).json();
   
       expect(pokemon.results.length).toBe(50);
     });
@@ -25,7 +30,7 @@ describe('/pokemon', () => {
       expect.assertions(1);
 
       try {
-        await got.get(`${API_URL}/pokemon?limit=a&offset=0`).json();
+        await httpClient.get(`pokemon?limit=a&offset=0`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -35,7 +40,7 @@ describe('/pokemon', () => {
       expect.assertions(1);
 
       try {
-        await got.get(`${API_URL}/pokemon?limit=-1&offset=0`).json();
+        await httpClient.get(`pokemon?limit=-1&offset=0`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -45,14 +50,14 @@ describe('/pokemon', () => {
   describe('offset', () => {
 
     it('recieves expected subset with offset and limit', async () => {
-      const fullRange = await got.get(`${API_URL}/pokemon?offset=0&limit=10`).json();
-      const subSet = await got.get(`${API_URL}/pokemon?offset=6&limit=5`).json();
+      const fullRange = await httpClient.get(`pokemon?offset=0&limit=10`).json();
+      const subSet = await httpClient.get(`pokemon?offset=6&limit=5`).json();
 
       expect(fullRange.results).toEqual(expect.arrayContaining(subSet.results));
     });
 
     it('recieves nothing if offset exceeds total', async () => {
-      const pokemon = await got.get(`${API_URL}/pokemon?offset=1000&limit=10`).json();
+      const pokemon = await httpClient.get(`pokemon?offset=1000&limit=10`).json();
   
       expect(pokemon.results.length).toBe(0);
     });
@@ -61,7 +66,7 @@ describe('/pokemon', () => {
       expect.assertions(1);
 
       try {
-        await got.get(`${API_URL}/pokemon?offset=a&limit=10`).json();
+        await httpClient.get(`pokemon?offset=a&limit=10`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -71,7 +76,7 @@ describe('/pokemon', () => {
       expect.assertions(1);
 
       try {
-        await got.get(`${API_URL}/pokemon?offset=-1&limit=10`).json();
+        await httpClient.get(`pokemon?offset=-1&limit=10`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -80,7 +85,7 @@ describe('/pokemon', () => {
 
   describe("single", () => {
     it('recieves bulbasaur for /1', async () => {
-      const bulbasaur = await got.get(`${API_URL}/pokemon/1`).json();
+      const bulbasaur = await httpClient.get(`pokemon/1`).json();
   
       expect(bulbasaur.id).toBe(1);
       expect(bulbasaur.name).toBe('bulbasaur');
@@ -89,7 +94,7 @@ describe('/pokemon', () => {
     });
   
     it('recieves bulbasaur for /bulbasaur', async () => {
-      const bulbasaur = await got.get(`${API_URL}/pokemon/bulbasaur`).json();
+      const bulbasaur = await httpClient.get(`pokemon/bulbasaur`).json();
   
       expect(bulbasaur.id).toBe(1);
       expect(bulbasaur.name).toBe('bulbasaur');
@@ -99,7 +104,7 @@ describe('/pokemon', () => {
   
     it('recieves 404 for /abc', async () => {
       try {
-        await got.get(`${API_URL}/pokemon/abc`).json();
+        await httpClient.get(`pokemon/abc`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(404);
       }
@@ -107,7 +112,7 @@ describe('/pokemon', () => {
   
     it('recieves 404 for /1000', async () => {
       try {
-        await got.get(`${API_URL}/pokemon/1000`).json();
+        await httpClient.get(`pokemon/1000`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(404);
       }
