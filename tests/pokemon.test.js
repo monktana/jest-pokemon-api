@@ -4,10 +4,10 @@ import { API_URL } from '../settings';
 describe('/pokemon', () => {
 
   it('recieves multiple pokemon', async () => {
-    const pokemon = await got.get(`${API_URL}/pokemon`).json();
+    const pokemon = await got.get(`${API_URL}/pokemon?limit=10&offset=0`).json();
 
     expect(pokemon.total).toBe(898);
-    expect(pokemon.results.length).toBe(20);
+    expect(pokemon.results.length).toBe(10);
     
     expect(pokemon.results[0].name).not.toBeNull();
     expect(pokemon.results[0].url).not.toBeNull();
@@ -16,7 +16,7 @@ describe('/pokemon', () => {
   describe('limit', () => {
 
     it('recieves the expected amout of elements based on limit parameter', async () => {
-      const pokemon = await got.get(`${API_URL}/pokemon?limit=50`).json();
+      const pokemon = await got.get(`${API_URL}/pokemon?limit=50&offset=0`).json();
   
       expect(pokemon.results.length).toBe(50);
     });
@@ -25,7 +25,7 @@ describe('/pokemon', () => {
       expect.assertions(1);
 
       try {
-        await got.get(`${API_URL}/pokemon?limit=a`).json();
+        await got.get(`${API_URL}/pokemon?limit=a&offset=0`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -35,7 +35,7 @@ describe('/pokemon', () => {
       expect.assertions(1);
 
       try {
-        await got.get(`${API_URL}/pokemon?limit=-1`).json();
+        await got.get(`${API_URL}/pokemon?limit=-1&offset=0`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -45,14 +45,14 @@ describe('/pokemon', () => {
   describe('offset', () => {
 
     it('recieves expected subset with offset and limit', async () => {
-      const fullRange = await got.get(`${API_URL}/pokemon?limit=10`).json();
+      const fullRange = await got.get(`${API_URL}/pokemon?offset=0&limit=10`).json();
       const subSet = await got.get(`${API_URL}/pokemon?offset=6&limit=5`).json();
 
       expect(fullRange.results).toEqual(expect.arrayContaining(subSet.results));
     });
 
     it('recieves nothing if offset exceeds total', async () => {
-      const pokemon = await got.get(`${API_URL}/pokemon?offset=1000`).json();
+      const pokemon = await got.get(`${API_URL}/pokemon?offset=1000&limit=10`).json();
   
       expect(pokemon.results.length).toBe(0);
     });
@@ -61,7 +61,7 @@ describe('/pokemon', () => {
       expect.assertions(1);
 
       try {
-        await got.get(`${API_URL}/pokemon?offset=a`).json();
+        await got.get(`${API_URL}/pokemon?offset=a&limit=10`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -71,7 +71,7 @@ describe('/pokemon', () => {
       expect.assertions(1);
 
       try {
-        await got.get(`${API_URL}/pokemon?offset=-1`).json();
+        await got.get(`${API_URL}/pokemon?offset=-1&limit=10`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
