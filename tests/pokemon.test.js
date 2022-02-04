@@ -99,10 +99,16 @@ describe('pokemon', () => {
     });
 
     it('recieves an error if ids is not in the expected format', async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       try {
         await httpClient.get(`pokemon?ids=1;2`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+
+      try {
+        await httpClient.get(`pokemon?ids=1,2,a`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -118,7 +124,7 @@ describe('pokemon', () => {
   describe('limit', () => {
 
     it('recieves the expected amout of elements based on limit parameter', async () => {
-      const pokemon = await httpClient.get(`pokemon?limit=50&start=0`).json();
+      const pokemon = await httpClient.get(`pokemon?limit=50`).json();
   
       expect(pokemon.results.length).toBe(50);
     });
@@ -127,7 +133,7 @@ describe('pokemon', () => {
       expect.assertions(1);
 
       try {
-        await httpClient.get(`pokemon?limit=a&start=0`).json();
+        await httpClient.get(`pokemon?limit=a`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -137,7 +143,7 @@ describe('pokemon', () => {
       expect.assertions(1);
 
       try {
-        await httpClient.get(`pokemon?limit=-1&start=0`).json();
+        await httpClient.get(`pokemon?limit=-1`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -154,7 +160,7 @@ describe('pokemon', () => {
     });
 
     it('recieves nothing if start exceeds total', async () => {
-      const pokemon = await httpClient.get(`pokemon?start=1000&limit=10`).json();
+      const pokemon = await httpClient.get(`pokemon?start=1000`).json();
   
       expect(pokemon.results.length).toBe(0);
     });
@@ -163,7 +169,7 @@ describe('pokemon', () => {
       expect.assertions(1);
 
       try {
-        await httpClient.get(`pokemon?start=a&limit=10`).json();
+        await httpClient.get(`pokemon?start=a`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -173,7 +179,7 @@ describe('pokemon', () => {
       expect.assertions(1);
 
       try {
-        await httpClient.get(`pokemon?start=-1&limit=10`).json();
+        await httpClient.get(`pokemon?start=-1`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
