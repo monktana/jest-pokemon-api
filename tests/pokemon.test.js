@@ -186,6 +186,93 @@ describe('pokemon', () => {
     });
   });
 
+  describe('types', () => {
+
+    it('can filter pokemon by type', async () => {
+      const pokemon = await httpClient.get(`pokemon?types=fire`).json();
+      expect(pokemon.results.length).toBe(71);
+      expect(pokemon.results.find(pokemon => pokemon.name == 'charmander')).not.toBeNull();
+    });
+
+    it('finds multitype pokemon', async () => {
+      const pokemon = await httpClient.get(`pokemon?types=fire`).json();
+      expect(pokemon.results.find(pokemon => pokemon.name == 'charizard')).not.toBeNull();
+    });
+
+    it('can filter pokemon by multiple types', async () => {
+      const pokemon = await httpClient.get(`pokemon?types=fire,flying`).json();
+      expect(pokemon.results.length).toBe(167);
+      expect(pokemon.results.find(pokemon => pokemon.name == 'charizard')).not.toBeNull();
+    });
+    
+    it('can filter pokemon by type from a specified start', async () => {
+      const pokemonWithCharmanderline = await httpClient.get(`pokemon?types=fire&start=1`).json();
+      expect(pokemonWithCharmanderline.results.length).toBe(71);
+      expect(pokemonWithCharmanderline.results.find(pokemon => pokemon.name == 'charmander')).not.toBeNull();
+
+      const pokemonWithoutCharmanderline = await httpClient.get(`pokemon?types=fire&start=10`).json();
+      expect(pokemonWithoutCharmanderline.results.length).toBe(68);
+      expect(pokemonWithoutCharmanderline.results.find(pokemon => pokemon.name == 'charmander')).toBeUndefined();
+    });
+    
+    it('can filter pokemon by type with a limit', async () => {
+      const pokemon = await httpClient.get(`pokemon?types=fire&limit=3`).json();
+      expect(pokemon.results.length).toBe(3);
+      expect(pokemon.results.find(pokemon => pokemon.name == 'charmander')).not.toBeNull();
+    });
+    
+    it('can filter pokemon by type in combination with id(s)', async () => {
+      let pokemon = await httpClient.get(`pokemon?types=fire&ids=4`).json();
+      expect(pokemon.results.length).toBe(1);
+      expect(pokemon.results.find(pokemon => pokemon.name == 'charmander')).not.toBeNull();
+
+      pokemon = await httpClient.get(`pokemon?types=fire&ids=3,4,5`).json();
+      expect(pokemon.results.length).toBe(2);
+      expect(pokemon.results.find(pokemon => pokemon.name == 'charmander')).not.toBeNull();
+      expect(pokemon.results.find(pokemon => pokemon.name == 'charmeleon')).not.toBeNull();
+
+      pokemon = await httpClient.get(`pokemon?types=fire&ids=1,2,3`).json();
+      expect(pokemon.results.length).toBe(0);
+    });
+    
+    it('can filter pokemon by type in combination with name', async () => {
+      let pokemon = await httpClient.get(`pokemon?types=fire&name=charmander`).json();
+      expect(pokemon.results.length).toBe(1);
+      expect(pokemon.results.find(pokemon => pokemon.name == 'charmander')).not.toBeNull();
+
+      pokemon = await httpClient.get(`pokemon?types=fire&name=squirtle`).json();
+      expect(pokemon.results.length).toBe(0);
+    });
+
+    it('recieves empty result for unknown type', async () => {
+      const pokemon = await httpClient.get(`pokemon?types=unknownType`).json();
+      expect(pokemon.results.length).toBe(0);
+    });
+
+    it('recieves an error if types are not in the expected format', async () => {
+      expect.assertions(3);
+
+      try {
+        await httpClient.get(`pokemon?types=fire;flying`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+
+      try {
+        await httpClient.get(`pokemon?types=fire,2`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+
+      try {
+        await httpClient.get(`pokemon?types=[fire,flying]`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+    });
+
+  });
+
   describe("single", () => {
     it('recieves bulbasaur for id 1', async () => {
       const bulbasaur = await httpClient.get(`pokemon/1`).json();
