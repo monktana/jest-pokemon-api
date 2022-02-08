@@ -36,8 +36,34 @@ describe('/types', () => {
     });
 
     it('recieves empty result for purely numerical value', async () => {
-      const types = await httpClient.get(`types?name=3`).json();
-      expect(types.results.length).toBe(0);
+      expect.assertions(1);
+      try {
+        await httpClient.get(`types?name=3`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+    });
+    
+    it('recieves an error for multiple names', async () => {
+      expect.assertions(3);
+
+      try {
+        await httpClient.get(`types?name=fire,water`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+
+      try {
+        await httpClient.get(`types?name=fire&name=water`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+
+      try {
+        await httpClient.get(`types?name[]=fire`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
     });
   });
 
@@ -193,49 +219,6 @@ describe('/types', () => {
       }
     });
   });
-
-  describe("single", () => {
-    it('recieves bulbasaur for id 1', async () => {
-      const bulbasaur = await httpClient.get(`pokemon/1`).json();
-  
-      expect(bulbasaur.id).toBe(1);
-      expect(bulbasaur.name).toBe('bulbasaur');
-      expect(bulbasaur.types).not.toBeNull();
-      expect(bulbasaur.types.find(type => type.name == 'grass')).not.toBeNull();
-    });
-  
-    it('recieves 404 for a non numeric id', async () => {
-      try {
-        await httpClient.get(`pokemon/abc`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(404);
-      }
-    });
-  
-    it('recieves 404 for a non integer id', async () => {
-      try {
-        await httpClient.get(`pokemon/1.5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(404);
-      }
-    });
-  
-    it('recieves 404 for a negative id', async () => {
-      try {
-        await httpClient.get(`pokemon/-1`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(404);
-      }
-    });
-  
-    it('recieves 404 for an id which exceeds the total amount', async () => {
-      try {
-        await httpClient.get(`pokemon/1000`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(404);
-      }
-    });
-  })
 
   describe("single", () => {
     it('recieves bug for /1', async () => {

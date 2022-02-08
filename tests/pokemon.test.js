@@ -25,7 +25,12 @@ describe('pokemon', () => {
       expect(bulbasaur.id).toBe(1);
       expect(bulbasaur.name).toBe('bulbasaur');
       expect(bulbasaur.types).not.toBeNull();
-      expect(bulbasaur.types.find(type => type.name == 'grass')).not.toBeNull();
+      expect(bulbasaur.types.grass).toBeTruthy();
+    });
+
+    it('can filter for names with a - ', async () => {
+      const pokemon = await httpClient.get(`pokemon?name=mr-mime`).json();
+      expect(pokemon.results.length).toBe(1);
     });
 
     it('recieves empty result for unknown name', async () => {
@@ -33,37 +38,62 @@ describe('pokemon', () => {
       expect(pokemon.results.length).toBe(0);
     });
 
-    it('recieves empty result for purely numerical value', async () => {
-      const pokemon = await httpClient.get(`pokemon?name=3`).json();
-      expect(pokemon.results.length).toBe(0);
+    it('recieves an error for purely numerical value', async () => {
+      expect.assertions(1);
+      try {
+        await httpClient.get(`pokemon?name=3`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+    });
+    
+    it('recieves an error for multiple names', async () => {
+      expect.assertions(3);
+
+      try {
+        await httpClient.get(`pokemon?name=bulbasaur,ivysaur`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+
+      try {
+        await httpClient.get(`pokemon?name=bulbasaur&name=ivysaur`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+
+      try {
+        await httpClient.get(`pokemon?name[]=bulbasaur`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
     });
   });
 
   describe('ids', () => {
     it('can filter pokemon by multiple ids', async () => {
-      const pokemon = await httpClient.get(`pokemon?ids=1,2,3`).json();
+      const pokemon = await httpClient.get(`pokemon?ids=1,4,7`).json();
       expect(pokemon.results.length).toBe(3);
 
       const bulbasaur = pokemon.results[0];
-      const ivysaur = pokemon.results[1];
-      const venusaur = pokemon.results[2];
+      const charmander = pokemon.results[1];
+      const squirtle = pokemon.results[2];
     
       expect(bulbasaur.id).toBe(1);
       expect(bulbasaur.name).toBe('bulbasaur');
       expect(bulbasaur.types).not.toBeNull();
-      expect(bulbasaur.types.find(type => type.name == 'grass')).not.toBeNull();
+      expect(bulbasaur.types.grass).toBeTruthy();
+      expect(bulbasaur.types.poison).toBeTruthy();
     
-      expect(ivysaur.id).toBe(2);
-      expect(ivysaur.name).toBe('ivysaur');
-      expect(ivysaur.types).not.toBeNull();
-      expect(ivysaur.types.find(type => type.name == 'grass')).not.toBeNull();
-      expect(ivysaur.types.find(type => type.name == 'poison')).not.toBeNull();
+      expect(charmander.id).toBe(4);
+      expect(charmander.name).toBe('charmander');
+      expect(charmander.types).not.toBeNull();
+      expect(charmander.types.fire).toBeTruthy();
     
-      expect(venusaur.id).toBe(3);
-      expect(venusaur.name).toBe('venusaur');
-      expect(venusaur.types).not.toBeNull();
-      expect(venusaur.types.find(type => type.name == 'grass')).not.toBeNull();
-      expect(venusaur.types.find(type => type.name == 'poison')).not.toBeNull();
+      expect(squirtle.id).toBe(7);
+      expect(squirtle.name).toBe('squirtle');
+      expect(squirtle.types).not.toBeNull();
+      expect(squirtle.types.water).toBeTruthy();
     });
 
     it('can filter pokemon by a single id', async () => {
@@ -75,7 +105,7 @@ describe('pokemon', () => {
       expect(bulbasaur.id).toBe(1);
       expect(bulbasaur.name).toBe('bulbasaur');
       expect(bulbasaur.types).not.toBeNull();
-      expect(bulbasaur.types.find(type => type.name == 'grass')).not.toBeNull();
+      expect(bulbasaur.types.grass).toBeTruthy();
     });
 
     it('recieves an error if ids is used multiple times in querystring', async () => {
@@ -201,7 +231,7 @@ describe('pokemon', () => {
 
     it('can filter pokemon by multiple types', async () => {
       const pokemon = await httpClient.get(`pokemon?types=fire,flying`).json();
-      expect(pokemon.results.length).toBe(167);
+      expect(pokemon.results.length).toBe(6);
       expect(pokemon.results.find(pokemon => pokemon.name == 'charizard')).not.toBeNull();
     });
     
@@ -270,7 +300,6 @@ describe('pokemon', () => {
         expect(error.response.statusCode).toBe(422);
       }
     });
-
   });
 
   describe("single", () => {
@@ -280,7 +309,7 @@ describe('pokemon', () => {
       expect(bulbasaur.id).toBe(1);
       expect(bulbasaur.name).toBe('bulbasaur');
       expect(bulbasaur.types).not.toBeNull();
-      expect(bulbasaur.types.find(type => type.name == 'grass')).not.toBeNull();
+      expect(bulbasaur.types.grass).toBeTruthy();
     });
   
     it('recieves 404 for a non numeric id', async () => {
