@@ -163,7 +163,7 @@ describe('/types', () => {
       expect(types.results.length).toBe(10);
     });
 
-    it(`recieves error for invalid limit parameter`, async () => {
+    it(`recieves error for an alphabetical value`, async () => {
       expect.assertions(1);
 
       try {
@@ -178,6 +178,26 @@ describe('/types', () => {
 
       try {
         await httpClient.get(`types?limit=-1`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+    });
+  
+    it(`recieves error for float with dot`, async () => {
+      expect.assertions(1);
+
+      try {
+        await httpClient.get(`types?limit=1.5`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+    });
+  
+    it(`recieves error for float with comma`, async () => {
+      expect.assertions(1);
+
+      try {
+        await httpClient.get(`types?limit=1,5`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
@@ -199,7 +219,7 @@ describe('/types', () => {
       expect(types.results.length).toBe(0);
     });
 
-    it(`recieves error for invalid start parameter`, async () => {
+    it(`recieves error for an alphabetical value`, async () => {
       expect.assertions(1);
 
       try {
@@ -214,6 +234,26 @@ describe('/types', () => {
 
       try {
         await httpClient.get(`types?start=-1`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+    });
+  
+    it(`recieves error for float with dot`, async () => {
+      expect.assertions(1);
+
+      try {
+        await httpClient.get(`types?start=1.5`).json();
+      } catch (error) {
+        expect(error.response.statusCode).toBe(422);
+      }
+    });
+  
+    it(`recieves error for float with comma`, async () => {
+      expect.assertions(1);
+
+      try {
+        await httpClient.get(`types?start=1,5`).json();
       } catch (error) {
         expect(error.response.statusCode).toBe(422);
       }
