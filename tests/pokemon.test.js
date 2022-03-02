@@ -362,7 +362,7 @@ describe('pokemon', () => {
       try {
         await httpClient.get(`pokemon/abc`).json();
       } catch (error) {
-        expect(error.response.statusCode).toBe(404);
+        expect(error.response.statusCode).toBe(422);
       }
     });
   
@@ -370,7 +370,7 @@ describe('pokemon', () => {
       try {
         await httpClient.get(`pokemon/1.5`).json();
       } catch (error) {
-        expect(error.response.statusCode).toBe(404);
+        expect(error.response.statusCode).toBe(422);
       }
     });
   
@@ -378,7 +378,7 @@ describe('pokemon', () => {
       try {
         await httpClient.get(`pokemon/-1`).json();
       } catch (error) {
-        expect(error.response.statusCode).toBe(404);
+        expect(error.response.statusCode).toBe(422);
       }
     });
   
