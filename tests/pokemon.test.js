@@ -18,6 +18,18 @@ describe('pokemon', () => {
     expect(pokemon.results[0].name).not.toBeNull();
   });
 
+  it('has the associated types in ascending order', async () => {
+    const pokemon = await httpClient.get(`pokemon`).json();
+
+    pokemon.results.forEach(pokemon => {
+      const isAscending = pokemon.types.every((type, index, array) => {
+        return index === 0 || type.id >= array[index - 1].id;
+      })
+
+      expect(isAscending).toBe(true);
+    });
+  });
+
   describe('name', () => {
     it('can filter pokemon by name', async () => {
       const pokemon = await httpClient.get(`pokemon?name=bulbasaur`).json();
