@@ -1,10 +1,13 @@
 import got from 'got';
 import { API_URL } from '../settings';
+import {jest} from '@jest/globals';
 
 
 const httpClient = got.extend({
   prefixUrl: API_URL
 });
+
+jest.setTimeout(10000);
 
 describe('/types', () => {
 
@@ -13,6 +16,30 @@ describe('/types', () => {
 
     expect(types.results.length).toBe(18);
     expect(types.results[0].name).not.toBeNull();
+  });
+
+  it('has the associated pokemon in ascending order', async () => {
+    const types = await httpClient.get(`types`).json();
+
+    types.results.forEach(type => {
+      const isAscending = type.pokemon.every((pkmn, index, array) => {
+        return index === 0 || pkmn.id >= array[index - 1].id;
+      })
+
+      expect(isAscending).toBe(true);
+    });
+  });
+
+  it('has its type matchups in ascending order', async () => {
+    const types = await httpClient.get(`types`).json();
+
+    types.results.forEach(type => {
+      const isAscending = type.matchups.every((matchup, index, array) => {
+        return index === 0 || matchup.id >= array[index - 1].id;
+      })
+
+      expect(isAscending).toBe(true);
+    });
   });
 
   describe('name', () => {
@@ -24,10 +51,8 @@ describe('/types', () => {
     
       expect(fire.id).toBe(7);
       expect(fire.name).toBe('fire');
-      expect(fire.damage_class).toBe('special');
+      expect(fire.damageClass).toBe('special');
       expect(fire.matchups).not.toBeNull();
-      expect(fire.pokemon).not.toBeNull();
-      expect(fire.pokemon.find(pokemon => pokemon.name == 'charmander')).not.toBeNull();
     });
 
     it('recieves empty result for unknown name', async () => {
@@ -78,24 +103,18 @@ describe('/types', () => {
     
       expect(bug.id).toBe(1);
       expect(bug.name).toBe('bug');
-      expect(bug.damage_class).toBe('physical');
+      expect(bug.damageClass).toBe('physical');
       expect(bug.matchups).not.toBeNull();
-      expect(bug.pokemon).not.toBeNull();
-      expect(bug.pokemon.find(pokemon => pokemon.name == 'caterpie')).not.toBeNull();
     
       expect(dark.id).toBe(2);
       expect(dark.name).toBe('dark');
-      expect(dark.damage_class).toBe('special');
+      expect(dark.damageClass).toBe('special');
       expect(dark.matchups).not.toBeNull();
-      expect(dark.pokemon).not.toBeNull();
-      expect(dark.pokemon.find(pokemon => pokemon.name == 'darkrai')).not.toBeNull();
     
       expect(dragon.id).toBe(3);
       expect(dragon.name).toBe('dragon');
-      expect(dragon.damage_class).toBe('special');
+      expect(dragon.damageClass).toBe('special');
       expect(dragon.matchups).not.toBeNull();
-      expect(dragon.pokemon).not.toBeNull();
-      expect(dragon.pokemon.find(pokemon => pokemon.name == 'dragonite')).not.toBeNull();
     });
 
     it('can filter pokemon by a single id', async () => {
@@ -106,10 +125,8 @@ describe('/types', () => {
     
       expect(bug.id).toBe(1);
       expect(bug.name).toBe('bug');
-      expect(bug.damage_class).toBe('physical');
+      expect(bug.damageClass).toBe('physical');
       expect(bug.matchups).not.toBeNull();
-      expect(bug.pokemon).not.toBeNull();
-      expect(bug.pokemon.find(pokemon => pokemon.name == 'caterpie')).not.toBeNull();
     });
 
     it('recieves an error if ids is used multiple times in querystring', async () => {
@@ -208,7 +225,7 @@ describe('/types', () => {
 
     it('recieves expected subset with start and limit', async () => {
       const fullRange = await httpClient.get(`types?start=0&limit=10`).json();
-      const subSet = await httpClient.get(`types?start=6&limit=5`).json();
+      const subSet = await httpClient.get(`types?start=5&limit=5`).json();
 
       expect(fullRange.results).toEqual(expect.arrayContaining(subSet.results));
     });
@@ -266,17 +283,15 @@ describe('/types', () => {
 
       expect(bug.id).toBe(1);
       expect(bug.name).toBe('bug');
-      expect(bug.damage_class).toBe('physical');
+      expect(bug.damageClass).toBe('physical');
       expect(bug.matchups).not.toBeNull();
-      expect(bug.pokemon).not.toBeNull();
-      expect(bug.pokemon.find(pokemon => pokemon.name == 'caterpie')).not.toBeNull();
     });
   
     it('recieves 404 for a non numeric id', async () => {
       try {
         await httpClient.get(`types/abc`).json();
       } catch (error) {
-        expect(error.response.statusCode).toBe(404);
+        expect(error.response.statusCode).toBe(422);
       }
     });
   
@@ -284,7 +299,7 @@ describe('/types', () => {
       try {
         await httpClient.get(`types/1.5`).json();
       } catch (error) {
-        expect(error.response.statusCode).toBe(404);
+        expect(error.response.statusCode).toBe(422);
       }
     });
   
@@ -292,7 +307,7 @@ describe('/types', () => {
       try {
         await httpClient.get(`types/-1`).json();
       } catch (error) {
-        expect(error.response.statusCode).toBe(404);
+        expect(error.response.statusCode).toBe(422);
       }
     });
   
