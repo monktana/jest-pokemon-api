@@ -1,16 +1,13 @@
 import got from 'got';
-import { API_URL } from '../settings';
 import {jest} from '@jest/globals';
 
-
 const httpClient = got.extend({
-  prefixUrl: API_URL
+  prefixUrl: process.env.API_URL
 });
 
 jest.setTimeout(10000);
 
 describe('pokemon', () => {
-
   it('recieves multiple pokemon', async () => {
     const pokemon = await httpClient.get(`pokemon?limit=10&start=0`).json();
 
@@ -53,37 +50,6 @@ describe('pokemon', () => {
       const pokemon = await httpClient.get(`pokemon?name=unknownName`).json();
       expect(pokemon.count).toBe(0);
     });
-
-    it('recieves an error for purely numerical value', async () => {
-      expect.assertions(1);
-      try {
-        await httpClient.get(`pokemon?name=3`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-    
-    it('recieves an error for multiple names', async () => {
-      expect.assertions(3);
-
-      try {
-        await httpClient.get(`pokemon?name=bulbasaur,ivysaur`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`pokemon?name=bulbasaur&name=ivysaur`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`pokemon?name[]=bulbasaur`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
   });
 
   describe('ids', () => {
@@ -124,101 +90,17 @@ describe('pokemon', () => {
       expect(bulbasaur.types.find(type => type.name == 'grass')).not.toBeNull();
       expect(bulbasaur.types.find(type => type.name == 'poison')).not.toBeNull();
     });
-
-    it('recieves an error if ids is used multiple times in querystring', async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?ids=1&ids=2`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-
-    it('recieves an error if ids are sent as an object', async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?ids[]=1`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-
-    it('recieves an error if ids is not in the expected format', async () => {
-      expect.assertions(3);
-
-      try {
-        await httpClient.get(`pokemon?ids=1;2`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`pokemon?ids=1,2,a`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`pokemon?ids=[1,2]`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
   });
 
   describe('limit', () => {
-
     it('recieves the expected amout of elements based on limit parameter', async () => {
       const pokemon = await httpClient.get(`pokemon?limit=50`).json();
   
       expect(pokemon.count).toBe(50);
     });
-
-    it(`recieves error for an alphabetical value`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?limit=a`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for negative limit`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?limit=-1`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for float with dot`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?limit=1.5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for float with comma`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?limit=1,5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
   });
 
   describe('start', () => {
-
     it('recieves expected subset with start and limit', async () => {
       const fullRange = await httpClient.get(`pokemon?start=0&limit=10`).json();
       const subSet = await httpClient.get(`pokemon?start=5&limit=5`).json();
@@ -231,50 +113,9 @@ describe('pokemon', () => {
   
       expect(pokemon.count).toBe(0);
     });
-
-    it(`recieves error for an alphabetical value`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?start=a`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for negative start`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?start=-1`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for float with dot`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?start=1.5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for float with comma`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`pokemon?start=1,5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
   });
 
   describe('types', () => {
-
     it('can filter pokemon by type', async () => {
       const pokemon = await httpClient.get(`pokemon?types=fire`).json();
       expect(pokemon.count).toBe(71);
@@ -334,28 +175,6 @@ describe('pokemon', () => {
     it('recieves empty result for unknown type', async () => {
       const pokemon = await httpClient.get(`pokemon?types=unknownType`).json();
       expect(pokemon.count).toBe(0);
-    });
-
-    it('recieves an error if types are not in the expected format', async () => {
-      expect.assertions(3);
-
-      try {
-        await httpClient.get(`pokemon?types=fire;flying`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`pokemon?types=fire,2`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`pokemon?types=[fire,flying]`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
     });
   });
 

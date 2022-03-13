@@ -1,10 +1,8 @@
 import got from 'got';
-import { API_URL } from '../settings';
 import {jest} from '@jest/globals';
 
-
 const httpClient = got.extend({
-  prefixUrl: API_URL
+  prefixUrl: process.env.API_URL
 });
 
 jest.setTimeout(10000);
@@ -68,28 +66,6 @@ describe('/types', () => {
         expect(error.response.statusCode).toBe(422);
       }
     });
-    
-    it('recieves an error for multiple names', async () => {
-      expect.assertions(3);
-
-      try {
-        await httpClient.get(`types?name=fire,water`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`types?name=fire&name=water`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`types?name[]=fire`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
   });
 
   describe('ids', () => {
@@ -128,101 +104,17 @@ describe('/types', () => {
       expect(bug.damageClass).toBe('physical');
       expect(bug.matchups).not.toBeNull();
     });
-
-    it('recieves an error if ids is used multiple times in querystring', async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?ids=1&ids=2`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-
-    it('recieves an error if ids are sent as an object', async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?ids[]=1`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-
-    it('recieves an error if ids is not in the expected format', async () => {
-      expect.assertions(3);
-
-      try {
-        await httpClient.get(`types?ids=1;2`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`types?ids=1,2,a`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-
-      try {
-        await httpClient.get(`types?ids=[1,2]`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
   });
 
   describe('limit', () => {
-
     it('recieves the expected amout of elements based on limit parameter', async () => {
       const types = await httpClient.get(`types?limit=10`).json();
   
       expect(types.results.length).toBe(10);
     });
-
-    it(`recieves error for an alphabetical value`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?limit=a`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for negative limit`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?limit=-1`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for float with dot`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?limit=1.5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for float with comma`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?limit=1,5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
   });
 
   describe('start', () => {
-
     it('recieves expected subset with start and limit', async () => {
       const fullRange = await httpClient.get(`types?start=0&limit=10`).json();
       const subSet = await httpClient.get(`types?start=5&limit=5`).json();
@@ -234,46 +126,6 @@ describe('/types', () => {
       const types = await httpClient.get(`types?start=1000`).json();
   
       expect(types.results.length).toBe(0);
-    });
-
-    it(`recieves error for an alphabetical value`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?start=a`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for negative start`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?start=-1`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for float with dot`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?start=1.5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
-    });
-  
-    it(`recieves error for float with comma`, async () => {
-      expect.assertions(1);
-
-      try {
-        await httpClient.get(`types?start=1,5`).json();
-      } catch (error) {
-        expect(error.response.statusCode).toBe(422);
-      }
     });
   });
 
